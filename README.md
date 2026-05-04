@@ -440,3 +440,32 @@ public class BankAccountRestController {
 ## Voic l nos tt endpoints 
 ![48.png](images/48.png)
 
+## ON passe au fornt end
+## la on va utilsier angular
+# on va installer nos tolls vai la cmd  
+## pour creer nos app
+## Installation de angular Cli qui permet de :
+Creer un projet angular avec ng new
+lancer un serveur via ng serve
+generer des composants via ng generate component
+builder lapp avec ng build
+
+```text
+npm install -g @angular/cli 
+```
+On cree un nv proekt via 
+```text
+ng new e-banking-app-j2ee
+```
+![49.png](images/49.png)
+On ajoute al route serahc
+http://localhost:8089/customers/search?keyword=SIHAM
+voila son twst ca marche 
+on test sans mettre laucun nom et ca va affciher tt  les customers
+![51.png](images/51.png)
+http://localhost:8089/customers/search
+![50.png](images/50.png)
+
+On test aevc http://localhost:8089/customers/search?keyword=H
+![52.png](images/52.png)
+

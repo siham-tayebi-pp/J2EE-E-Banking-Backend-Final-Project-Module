@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Slf4j
+@CrossOrigin("http://localhost:4200")
 @RequestMapping("/customers") //cad faux mette ca avnt les routes dici ppiur les y acceder
 public class CustomerRestController {
     BankAccountService bankAccountService;
@@ -20,6 +21,12 @@ public class CustomerRestController {
     public List<CustomerDTO> customers(){
         return bankAccountService.listCustomers();
     }
+
+    @GetMapping("/search")
+    public List<CustomerDTO> searchCustomers(@RequestParam( name="keyword",defaultValue="") String keyword){
+        return bankAccountService.searchCustomers(keyword);
+    }
+
     @GetMapping("/{id}")
     public CustomerDTO customer(@PathVariable(name = "id") Long id) throws CustomerNotFoundException {
         return  bankAccountService.getCustomer(id);
@@ -31,6 +38,7 @@ public class CustomerRestController {
 
         return bankAccountService.saveCustomer(customerDTO);
     }
+
     @PutMapping("/{id}")
     public CustomerDTO updateCustomer(@PathVariable long id, @RequestBody CustomerDTO customerDTO) throws CustomerNotFoundException {
         customerDTO.setId(id);
