@@ -1,5 +1,6 @@
 package net.tayebi.j2eeebankingbackendfinalprojectmodule.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import net.tayebi.j2eeebankingbackendfinalprojectmodule.enums.AccountStatus;
@@ -33,5 +34,6 @@ public class BankAccount {// 1 pour single table
     // peut contneir avoir plusieurs operations
     //un compte peux avoir plusieurs operations
 @OneToMany(mappedBy = "bankAccount", fetch = FetchType.LAZY)
+@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<AccountOperation> accountOperations;
 }

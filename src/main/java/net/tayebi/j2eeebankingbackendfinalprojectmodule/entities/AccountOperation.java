@@ -20,5 +20,6 @@ public class AccountOperation {
     // chaque operation concerne un compte
     @ManyToOne
     private  BankAccount bankAccount;
+    private String description;
 
 }
