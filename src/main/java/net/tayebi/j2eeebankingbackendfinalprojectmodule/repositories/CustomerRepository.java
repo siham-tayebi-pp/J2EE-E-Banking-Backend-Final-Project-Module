@@ -8,4 +8,7 @@ import java.util.List;
 
 public interface CustomerRepository extends JpaRepository<Customer,Long> {
     List<Customer> findByNameContains(String customerName);
+
+
+    Customer getCustomersById(Long id);
 }

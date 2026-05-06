@@ -18,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,12 +50,25 @@ public class BankAccountServiceImpl implements BankAccountService {
         return bankAccountMapper.fromCustomer(savedCustomer);
     }
 
+    @Transactional
     @Override
     public void deleteCustomerById(Long customerId) {
         log.info("Deleting Customer");
+        Customer cu=customerRepository.getCustomersById(customerId);
+        // 1. récupérer les comptes
+        List<BankAccount> accounts = bankAccountRepository.findAll()
+                .stream()
+                .filter(acc -> acc.getCustomer().getId().equals(customerId))
+                .toList();
+        // 2. supprimer operations
+        for (BankAccount acc : accounts) {
+            accountOperationRepository.deleteByBankAccountId(acc.getId());
+        }
+        // 3. supprimer comptes
+        bankAccountRepository.deleteBankAccountsByCustomer(cu);
+        // 4. supprimer customer
         customerRepository.deleteById(customerId);
     }
-
     @Override
     public CurrentBankAccountDTO saveCurrentBankAccount(double initialBalance, double overDraft, Long customrId) throws CustomerNotFoundException {
        Customer customer=customerRepository.findById(customrId).orElse(null);
@@ -194,7 +206,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public void virement(String acountIdSource, String acountIdDest, double amount) throws BankAccountNotFoundException, BalanceNotSufficientException {
+    public void transfer(String acountIdSource, String acountIdDest, double amount) throws BankAccountNotFoundException, BalanceNotSufficientException {
         debit(acountIdSource,amount,"trandfer to"+acountIdDest);
         credit(acountIdDest,amount,"tranfer from"+acountIdSource);
 
@@ -223,6 +235,11 @@ public class BankAccountServiceImpl implements BankAccountService {
      accountHistoryDTO.setTotalPages(accountOperations.getTotalPages());
         return accountHistoryDTO;
     }
+//    @Override
+//    public void transfer(String accountIdSource, String accountIdDestination, double amount) throws BankAccountNotFoundException, BalanceNotSufficientException {
+//        debit(accountIdSource,amount,"Transfer to "+accountIdDestination);
+//        credit(accountIdDestination,amount,"Transfer from "+accountIdSource);
+//    }
 
     @Override
     public List<CustomerDTO> searchCustomers(String keyword) {
@@ -233,4 +250,20 @@ public class BankAccountServiceImpl implements BankAccountService {
 
         return customerDtos;
     }
+    @Override
+    public List<BankAccountDTO> accountsByCustomer(Long customerId) {
+        Customer customer=customerRepository.findById(customerId).orElse(null);
+        List<BankAccount> accounts=bankAccountRepository.findByCustomer(customer);
+        List<BankAccountDTO> accountsDtos=accounts.stream().map(ba -> {
+            if(ba instanceof SavingAccount){
+                return bankAccountMapper.fromSavingAccount((SavingAccount) ba);
+            }
+            else{
+                return bankAccountMapper.fromCurrentBankAccount((CurrentAccount) ba);
+            }
+       }).collect(Collectors.toList());
+
+        return accountsDtos;
+    }
+
 }

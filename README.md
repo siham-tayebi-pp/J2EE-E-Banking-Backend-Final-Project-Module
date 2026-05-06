@@ -469,3 +469,97 @@ http://localhost:8089/customers/search
 On test aevc http://localhost:8089/customers/search?keyword=H
 ![52.png](images/52.png)
 
+
+## Nous avons passe au prtie securite , nous avons commecrer par installer la depnadanse  a partir de https://start.spring.io/  et la colelr dans notere pom.xml
+```text
+OAuth2 Resource Server Security
+Spring Boot integration for Spring Security's OAuth2 resource server features.
+```
+![53.png](images/53.png)
+![54.png](images/54.png)
+## La lauthentif sra autoitise par default
+# Nous avons creer une classe de config personnalise
+## Dans la calslse congif ya 2 annotaion importannt @COnnfi... @EnableSecutiyweb
+## FDans classe security config on met authoenti via un form basuic
+![55.png](images/55.png)
+## On test  via hhtp client tools de intelij dans tools + http client + test  , nous avons instlale plusgin base64 helper pour ebcoder bnso domnne s
+Nus avons tester les 3 users aest ca marche
+```http request
+GET http://localhost:8089/customers
+Accept: application/json
+#Authorization: Basic user1:1234
+#Authorization: Basic dXNlcjE6MTIzNA==
+#Authorization: Basic user2:1234
+Authorization: Basic dXNlcjI6MTIzNA==
+#Authorization: Basic user3:1234
+#Authorization: Basic dXNlcjM6MTIzNA==
+
+<> 2026-05-05T093403.200.json
+<> 2026-05-05T093051.200.json
+
+###
+```
+![56.png](images/56.png)
+## Nous avons creer un securiy controlelr
+
+```java
+ @GetMapping("/profile")
+    public Authentication authenticate(Authentication authentication) {
+        return authentication;
+    }
+```
+On teste aussi inne meth qui renvoir objr autheentif
+![57.png](images/57.png)
+## Nous avons aussi remplace authontif avec defautl avec auth2 resurce server configurer
+## pou jswt encoder et decoder ont besoin dun secretkey , nous avons mis notre secret dan ap.properties
+## dans config on declare un var  ou on va appeler ce secret key
+Endpoint pour authentifier les users
+```java
+ @PostMapping("/login")
+
+    public Map<String,String > login(String username, String password) {
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        // genere les jwt
+        Instant instant = Instant.now();
+        String scope=authentication.getAuthorities().stream().map(a->a.getAuthority()).collect(Collectors.joining(""));
+
+        JwtClaimsSet jwtClaimsSet=JwtClaimsSet.builder()
+                .issuedAt(instant)
+                .expiresAt(instant.plus(10, ChronoUnit.MINUTES))
+                .subject(username)
+                .issuer("http://localhost:8080") // aui a gennr e token
+                .claim("scope", scope)
+                .build();
+        //enmcoder en rapplelant quelle algo
+        JwtEncoderParameters jwtEncoderParameters=JwtEncoderParameters.from(
+                JwsHeader.with(MacAlgorithm.HS512).build(),jwtClaimsSet);
+        String jwt = jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+        return Map.of("access_token",jwt);
+
+    }
+```
+Nous avons tester lendpint
+via intellij 
+## soi on la  tester la on va etre rejete car nosu on demande aque tt les req doivant etre des users aythentif 
+![58.png](images/58.png)
+# DOnc nosu avons authorise tt cette enedpoutns
+```java
+                .authorizeHttpRequests(ar-> ar.requestMatchers("/auth/login/**").permitAll())
+
+```
+Nous avons test de sauthetif il a nous envoyre le token jswt et on an le decoder et cbn le sdonnnes osnt corretce
+![59.png](images/59.png)
+![60.png](images/60.png)
+
+Pour les atre endpoints non authorise soans authntif il fait envoyaer abevc la requete dna sheader autorixation + secret jwt genere sinn ca va pas marche
+ ms avec nearer au leiu de basic
+## Nous avons proteggrr ts ce qui est gt avce role urser et ts ce qui put delte  etc role admin
+```java
+
+@EnableGlobalMethodSecurity(prePostEnabled = true) 
+dans config et dna sles cotroller on emt
+@PreAuthorize("hasRole('USER')")
+```
+## NOus rvenons a proteger notrse frontend
+
+
